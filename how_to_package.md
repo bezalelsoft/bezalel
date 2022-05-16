@@ -21,5 +21,6 @@ py -m build
 py -m twine upload --repository testpypi dist/*
 
 # TODO: for prod
+py -m twine upload dist/*
 
 ```
