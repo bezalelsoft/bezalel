@@ -98,3 +98,93 @@ will print
 len=12300: [{"key":  "val1", ...}, {"key":  "val2", ...}, ...]
 ```
 
+## Helper function: `normalize_with_prototype()`
+
+Normalize python dict, so that it has all the fields and only the fields specified in a prototype dict.
+
+```python
+from bezalel import normalize_with_prototype
+
+object_from_api = {
+    "id": 123,
+    "name:": "John",
+    "country": "Poland",
+    # city is not provided here (but present in prototype)
+    "pets": [
+        {"id": 101, "type": "dog", "name": "Barky"},
+        {"id": 102, "type": "snail"},   # name is not provided here (but present in prototype)
+    ],
+    "unspecifiedField": 123     # this field is not present in prototype below
+}
+
+prototype_from_swagger = {
+    "id": 0,
+    "name:": "",
+    "country": "",
+    "city": "",
+    "pets": [
+        {"id": 0, "type": "", "name": ""},
+    ]
+}
+
+result = normalize_with_prototype(prototype_from_swagger, object_from_api)
+```
+
+would return
+
+```python
+result = {
+    "id": 123,
+    "name:": "John",
+    "country": "Poland",
+    "city": None,   # city was added
+    "pets": [
+        {"id": 101, "type": "dog", "name": "Barky"},
+        {"id": 102, "type": "snail", "name": None}, # name was added
+    ]
+}
+```
+
+
+## Helper function: `normalize_dicts()`
+
+Normalize list of nested python dicts to a list of one-level dicts.
+
+Example:
+```python
+from bezalel import normalize_dicts
+
+data = [
+    {
+        "id": 1, "name": "John Smith",
+        "pets": [
+            {"id": 101, "type": "cat", "name": "Kitty", "toys": [{"name": "toy1"}, {"name": "toy2"}]},
+            {"id": 102, "type": "dog", "name": "Barky", "toys": [{"name": "toy3"}]}
+        ]
+    },
+    {
+        "id": 2, "name": "Sue Smith",
+        "pets": [
+            {"id": 201, "type": "cat", "name": "Kitten", "toys": [{"name": "toy4"}, {"name": "toy5"}, {"name": "toy6"}]},
+            {"id": 202, "type": "dog", "name": "Fury", "toys": []}
+        ]
+    },
+]
+
+normalize_dicts(data, ["pets", "toys"])
+```
+
+would return:
+
+```python
+[{'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy1'},
+ {'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy2'},
+ {'id': 1, 'name': 'John Smith', 'pets.id': 102, 'pets.type': 'dog', 'pets.name': 'Barky', 'pets.toys.name': 'toy3'},
+ {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy4'},
+ {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy5'},
+ {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy6'},
+ {'id': 2, 'name': 'Sue Smith', 'pets.id': 202, 'pets.type': 'dog', 'pets.name': 'Fury'}]
+```
+
+Presence of the last record can be controlled by flag `return_incomplete_records`. If `return_incomplete_records=False`
+then last record in the example would not have been returned.
