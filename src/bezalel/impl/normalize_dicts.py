@@ -1,5 +1,7 @@
+import json
 
-def normalize_dicts(records_list: list, path: list, separator=".", return_incomplete_records=True):
+
+def normalize_dicts(records_list: list, path: list, separator=".", return_incomplete_records=True, jsonify_lists=False):
     """
     Normalize list of nested python dicts to a list of one-level dicts.
 
@@ -42,27 +44,36 @@ def normalize_dicts(records_list: list, path: list, separator=".", return_incomp
         at some level, this flag indicates if that incomplete record should be returned in result list.
     :return: list of normalized dicts.
     """
+    def unroll_dict_rec(d: dict, prefix: str = "") -> dict:
+        unrolled = {}
+        for k, v in d.items():
+            if type(v) == dict:
+                for u_k, u_v in unroll_dict_rec(v, f"{prefix}{k}{separator}").items():
+                    unrolled[u_k] = u_v
+            elif jsonify_lists and type(v) == list:
+                unrolled[f"{prefix}{k}"] = json.dumps(v)
+            else:
+                unrolled[f"{prefix}{k}"] = v
+        return unrolled
+
     def normalize_dicts_rec(records_list: list, path: list, prefix: str = "") -> list:
         if records_list is None or len(records_list) == 0:
             records_list = [{}] if return_incomplete_records else []
         if type(records_list) != list:
             raise Exception(f"records_list is not a list at [{prefix}]")
-        if len(path) == 0:
-            if records_list is None:
-                return []
-            return [{f"{prefix}{k}": v for k,v in record.items()} for record in records_list]
         records_denormalized = []
-        path_head = path[0]
-        path_tail = path[1:]
         for record in records_list:
             if type(record) != dict:
                 raise Exception(f"record is not a dict at [{prefix}]")
             keys_to_repeat = list(record.keys())
-            if path_head in keys_to_repeat:
-                keys_to_repeat.remove(path_head)
-            obj_to_repeat = {f"{prefix}{k}": record[k] for k in keys_to_repeat}
-            records2 = normalize_dicts_rec(record.get(path_head), path_tail, prefix=f"{prefix}{path_head}{separator}")
-            for rec2 in records2:
-                records_denormalized.append({**obj_to_repeat, **rec2})
+            if len(path) > 0 and path[0] in keys_to_repeat:
+                keys_to_repeat.remove(path[0])
+            obj_to_repeat = unroll_dict_rec({k: record[k] for k in keys_to_repeat}, prefix)
+            if len(path) > 0:
+                records2 = normalize_dicts_rec(record.get(path[0]), path[1:], prefix=f"{prefix}{path[0]}{separator}")
+                for rec2 in records2:
+                    records_denormalized.append({**obj_to_repeat, **rec2})
+            else:
+                records_denormalized.append(obj_to_repeat)
         return records_denormalized
     return normalize_dicts_rec(records_list, path)

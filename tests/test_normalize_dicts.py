@@ -1,7 +1,10 @@
 from pprint import pprint
+from bezalel import normalize_dicts
+from unittest import TestCase
+import json
 
-if __name__ == '__main__':
-    # example 1:
+
+def test_simple_case_1():
     data = [
         {
             "id": 1, "name": "John Smith",
@@ -18,11 +21,20 @@ if __name__ == '__main__':
             ]
         },
     ]
-    pprint(normalize_dicts(data, ["pets", "toys"]), sort_dicts=False)
 
-    print("HHHHHHHHHHHHHHHHHHHHHHHHHHH")
+    expected_list = [
+        {'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy1'},
+        {'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy2'},
+        {'id': 1, 'name': 'John Smith', 'pets.id': 102, 'pets.type': 'dog', 'pets.name': 'Barky', 'pets.toys.name': 'toy3'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy4'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy5'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy6'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 202, 'pets.type': 'dog', 'pets.name': 'Fury'}]
+    result = normalize_dicts(data, ["pets", "toys"])
+    TestCase().assertListEqual(expected_list, result)
 
-    # This works fine:
+
+def test_with_empty_list():
     data = [{
         "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}, {"height": 1300, "weight": 600}],
         "someList": []
@@ -36,10 +48,18 @@ if __name__ == '__main__':
         "someList": [1]
     },
     ]
-    print("HHHHHHHHHHHHHHHHHHHHHHHHHHH")
-    pprint(normalize_dicts(data, ["fitness"]), sort_dicts=False)
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.height': 130, 'fitness.weight': 60},
+        {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.height': 1300, 'fitness.weight': 600},
+        {'id': 2, 'name': 'Faye Raker', 'someList': [1], 'fitness.height': 130, 'fitness.weight': 60},
+        {'id': 2, 'name': 'Faye Raker', 'someList': [1], 'fitness.height': 888, 'fitness.weight': 777},
+        {'id': 2, 'name': 'Faye Raker', 'someList': [1], 'fitness.height': 130, 'fitness.weight': 60}]
+    result = normalize_dicts(data, ["fitness"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
 
-    # This doesn't work
+
+def test_empty_lists_2():
     data = [{
         "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}],
         "someList": []
@@ -48,10 +68,15 @@ if __name__ == '__main__':
         "id": 2, "name": "Faye Raker", "fitness": [{"height": 130, "weight": 60}],
         "someList": []
     }, ]
-    print("HHHHHHHHHHHHHHHHHHHHHHHHHHH")
-    pprint(normalize_dicts(data, ["fitness"]), sort_dicts=False)
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.height': 130, 'fitness.weight': 60},
+        {'id': 2, 'name': 'Faye Raker', 'someList': [], 'fitness.height': 130, 'fitness.weight': 60}]
+    result = normalize_dicts(data, ["fitness"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
 
-    # 2 level
+
+def test_2_level():
     data = [{
         "id": 1, "name": "Cole Volk", "fitness": [
             {"fit1": 101, "fit2": [{"height": 1001, "weight": 1002}, {"height": 1011, "weight": 1012}, {"height": 1022, "weight": 1023}] },
@@ -70,7 +95,56 @@ if __name__ == '__main__':
     {},
     {"id": 3, "name": "AAA BBB", "fitness": []},
     {"id": 4, "name": "AAA BBB", "fitness": None},
-    # {"id": 4, "name": "AAA BBB", "fitness": "not-a-list"}
+    # {"id": 4, "name": "AAA BBB", "fitness": "not-a-list"} # TODO: it should throw an exception, so move it to another test
     ]
-    print("HHHHHHHHHHHHHHHHHHHHHHHHHHH")
-    pprint(normalize_dicts(data, ["fitness", "fit2"]), sort_dicts=False)
+
+    expected_list = [{'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.fit1': 101, 'fitness.fit2.height': 1001, 'fitness.fit2.weight': 1002},
+                     {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.fit1': 101, 'fitness.fit2.height': 1011, 'fitness.fit2.weight': 1012},
+                     {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.fit1': 101, 'fitness.fit2.height': 1022, 'fitness.fit2.weight': 1023},
+                     {'id': 1, 'name': 'Cole Volk', 'someList': [], 'fitness.fit1': 102, 'fitness.fit2.height': 11, 'fitness.fit2.weight': 22},
+                     {'id': 2, 'name': 'Faye Raker', 'someList': [], 'fitness.fit1': 201, 'fitness.fit2.height': 131, 'fitness.fit2.weight': 601},
+                     {'id': 2, 'name': 'Faye Raker', 'someList': [], 'fitness.fit1': 201, 'fitness.fit2.height': 132, 'fitness.fit2.weight': 602},
+                     {'id': 2, 'name': 'Faye Raker', 'someList': [], 'fitness.fit1': 201, 'fitness.fit2.height': 133, 'fitness.fit2.weight': 603},
+                     {'id': 2, 'name': 'Faye Raker', 'someList': [], 'fitness.fit1': 202, 'fitness.fit2.height': 11, 'fitness.fit2.weight': 22},
+                     {},
+                     {'id': 3, 'name': 'AAA BBB'},
+                     {'id': 4, 'name': 'AAA BBB'}
+                     ]
+    result = normalize_dicts(data, ["fitness", "fit2"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
+
+
+def test_flatten_dict():
+    data = [{
+        "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}
+    },
+    {
+        "id": 2, "name": "Faye Raker", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 201, "b": 202}, "someList": [1,2,3]
+    }, ]
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk', "someDict.a": 101, "someDict.b": 102, "someDict.c.k1": 103, "someDict.c.k2": 104, 'fitness.height': 130, 'fitness.weight': 60},
+        {'id': 2, 'name': 'Faye Raker', "someDict.a": 201, "someDict.b": 202, "someList": json.dumps([1,2,3]), 'fitness.height': 130, 'fitness.weight': 60}]
+    result = normalize_dicts(data, ["fitness"], jsonify_lists=True)
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
+
+
+def test_empty_path():
+    data = [{
+        "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}
+    },
+    {
+        "id": 2, "name": "Faye Raker", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 201, "b": 202}, "someList": [1,2,3]
+    }, ]
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk', 'fitness': json.dumps([{"height": 130, "weight": 60}]), "someDict.a": 101, "someDict.b": 102, "someDict.c.k1": 103, "someDict.c.k2": 104},
+        {'id': 2, 'name': 'Faye Raker', 'fitness': json.dumps([{"height": 130, "weight": 60}]), "someDict.a": 201, "someDict.b": 202, "someList": json.dumps([1,2,3])}
+    ]
+    result = normalize_dicts(data, [], jsonify_lists=True)
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
