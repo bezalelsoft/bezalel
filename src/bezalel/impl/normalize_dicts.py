@@ -1,7 +1,8 @@
 import json
 
 
-def normalize_dicts(records_list: list, path: list, separator=".", return_incomplete_records=True, jsonify_lists=False):
+def normalize_dicts(records_list: list, path: list, separator=".", return_incomplete_records=True, jsonify_lists=False,
+                    jsonify_dicts: list=[]):
     """
     Normalize list of nested python dicts to a list of one-level dicts.
 
@@ -42,18 +43,24 @@ def normalize_dicts(records_list: list, path: list, separator=".", return_incomp
     :param separator: str, (defaults to "."), it will be put in names of fields of resulting dicts.
     :param return_incomplete_records: bool (defaults to True), if following the `path` fails because there is no object
         at some level, this flag indicates if that incomplete record should be returned in result list.
+    :param jsonify_dicts: list (defaults to []) a list of paths (str) that point to dicts in each record that must not
+        be recurred into during unrolling.
     :return: list of normalized dicts.
     """
     def unroll_dict_rec(d: dict, prefix: str = "") -> dict:
         unrolled = {}
         for k, v in d.items():
-            if type(v) == dict:
-                for u_k, u_v in unroll_dict_rec(v, f"{prefix}{k}{separator}").items():
+            unrolled_key = f"{prefix}{k}"
+
+            if type(v) == dict and jsonify_dicts is not None and unrolled_key in jsonify_dicts:
+                unrolled[unrolled_key] = json.dumps(v)
+            elif type(v) == dict:
+                for u_k, u_v in unroll_dict_rec(v, f"{unrolled_key}{separator}").items():
                     unrolled[u_k] = u_v
             elif jsonify_lists and type(v) == list:
-                unrolled[f"{prefix}{k}"] = json.dumps(v)
+                unrolled[unrolled_key] = json.dumps(v)
             else:
-                unrolled[f"{prefix}{k}"] = v
+                unrolled[unrolled_key] = v
         return unrolled
 
     def normalize_dicts_rec(records_list: list, path: list, prefix: str = "") -> list:

@@ -148,3 +148,90 @@ def test_empty_path():
     result = normalize_dicts(data, [], jsonify_lists=True)
     print(result)
     TestCase().assertListEqual(expected_list, result)
+
+
+def test_single_record_with_no_elems():
+    # this shows that without a prototype, we can't rebuild exact columns in output dictionary
+    data = [
+    {
+        "id": 2, "name": "Faye Raker", "fitness": [],
+        "someList": [1]
+    },
+    ]
+    expected_list = [
+        {'id': 2, 'name': 'Faye Raker', 'someList': [1]}    # not sure if this makes sense, but this is how it works.
+        # {'id': 2, 'name': 'Faye Raker', 'someList': [1], 'fitness.height': None, 'fitness.weight': None}  # current API doesn't allow this
+    ]
+    result = normalize_dicts(data, ["fitness"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
+
+
+def test_jsonify_dicts():
+    data = [{
+        "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}
+    },
+    {
+        "id": 2, "name": "Faye Raker", "fitness": [{"height": 130, "weight": 60}],
+        "someDict": {"a": 201, "b": 202}, "someList": [1, 2, 3]
+    }, ]
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk', "someDict": json.dumps({"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}),
+         'fitness.height': 130, 'fitness.weight': 60},
+        {'id': 2, 'name': 'Faye Raker', "someDict": json.dumps({"a": 201, "b": 202}), "someList": json.dumps([1, 2, 3]),
+         'fitness.height': 130, 'fitness.weight': 60}]
+    result = normalize_dicts(data, ["fitness"], jsonify_lists=True, jsonify_dicts=["someDict"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)
+
+
+def test_jsonify_dicts_2():
+    data = [
+        {
+            "id": 1, "name": "John Smith",
+            "pets": [
+                {"id": 101, "type": "cat", "name": "Kitty", "toys": [{"name": "toy1"}, {"name": "toy2"}], "someDict": {"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}},
+                {"id": 102, "type": "dog", "name": "Barky", "toys": [{"name": "toy3"}], "someDict": {"other dict": 1122, "bbb": 202}}
+            ]
+        },
+        {
+            "id": 2, "name": "Sue Smith",
+            "pets": [
+                {"id": 201, "type": "cat", "name": "Kitten", "toys": [{"name": "toy4"}, {"name": "toy5"}, {"name": "toy6"}]},
+                {"id": 202, "type": "dog", "name": "Fury", "toys": []}
+            ]
+        },
+    ]
+
+    expected_list = [
+        {'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy1', 'pets.someDict': json.dumps({"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}})},
+        {'id': 1, 'name': 'John Smith', 'pets.id': 101, 'pets.type': 'cat', 'pets.name': 'Kitty', 'pets.toys.name': 'toy2', 'pets.someDict': json.dumps({"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}})},
+        {'id': 1, 'name': 'John Smith', 'pets.id': 102, 'pets.type': 'dog', 'pets.name': 'Barky', 'pets.toys.name': 'toy3', 'pets.someDict': json.dumps({"other dict": 1122, "bbb": 202})},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy4'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy5'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 201, 'pets.type': 'cat', 'pets.name': 'Kitten', 'pets.toys.name': 'toy6'},
+        {'id': 2, 'name': 'Sue Smith', 'pets.id': 202, 'pets.type': 'dog', 'pets.name': 'Fury'}]
+    result = normalize_dicts(data, ["pets", "toys"], jsonify_dicts=["pets.someDict"])
+    tc = TestCase()
+    tc.maxDiff = 2000
+    tc.assertListEqual(expected_list, result)
+
+
+
+def test_jsonify_dicts3():
+    data = [{
+        "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60, "someDict": {"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}}],
+    },
+    {
+        "id": 2, "name": "Faye Raker", "fitness": [{"height": 130, "weight": 60,"someDict": {"a": 201, "b": 202}}],
+        "someList": [1, 2, 3]
+    }, ]
+    expected_list = [
+        {'id': 1, 'name': 'Cole Volk',
+         'fitness.height': 130, 'fitness.weight': 60, "fitness.someDict": json.dumps({"a": 101, "b": 102, "c": {"k1": 103, "k2": 104}}),},
+        {'id': 2, 'name': 'Faye Raker',
+         'fitness.height': 130, 'fitness.weight': 60, "fitness.someDict": json.dumps({"a": 201, "b": 202}), "someList": json.dumps([1, 2, 3]),}]
+    result = normalize_dicts(data, ["fitness"], jsonify_lists=True, jsonify_dicts=["fitness.someDict"])
+    print(result)
+    TestCase().assertListEqual(expected_list, result)

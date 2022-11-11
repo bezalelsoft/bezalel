@@ -188,3 +188,7 @@ would return:
 
 Presence of the last record can be controlled by flag `return_incomplete_records`. If `return_incomplete_records=False`
 then last record in the example would not have been returned.
+
+Additional options:
+- jsonify_lists - when set to True, then if a list is encountered (not in main path), it is dumped as a JSON string.
+- jsonify_dicts - list of paths for where to expect a dict. That dict will be then dumped as a JSON string.

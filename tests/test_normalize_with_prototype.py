@@ -39,4 +39,6 @@ def test_normalize_with_prototype_1():
     }
 
     TestCase().assertDictEqual(expected_result, result)
+
+    TestCase().assertDictEqual(expected_result, normalize_with_prototype(prototype_from_swagger, result))
     print(result)

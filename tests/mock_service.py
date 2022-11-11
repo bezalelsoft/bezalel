@@ -35,5 +35,9 @@ async def root(pageNumber: int):
         }
 
 
-if __name__ == "__main__":
+def run_uvicorn_server():
     uvicorn.run(app, host="localhost", port=5000, log_level="info")
+
+
+if __name__ == "__main__":
+    run_uvicorn_server()

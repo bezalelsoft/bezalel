@@ -1,15 +1,6 @@
 # How to run unit tests
 
 ```bash
-# start mock service in another terminal
-cd tests
-python3 mock_service.py
-```
-
-```bash
-# do only once
-pip3 install -e .
-
 # run tests
 pytest
 

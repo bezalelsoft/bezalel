@@ -9,7 +9,7 @@ from unittest import TestCase
 from mock_service import generate_pages
 
 
-def test_PaginatedApiIterator():
+def test_PaginatedApiIterator(mock_service):
     pages = []
     for page in PaginatedApiIterator(requests.Session(), url=f"http://localhost:5000/page-api",
                                      request_page_number_param_name="pageNumber",
@@ -22,7 +22,7 @@ def test_PaginatedApiIterator():
     TestCase().assertListEqual(exptected_pages, pages)
 
 
-def test_BufferingIterator():
+def test_BufferingIterator(mock_service):
     pages = []
     for page in BufferingIterator(PaginatedApiIterator(requests.Session(), url=f"http://localhost:5000/page-api",
                                                        request_page_number_param_name="pageNumber",
