@@ -109,6 +109,11 @@ object_from_api = {
     "id": 123,
     "name:": "John",
     "country": "Poland",
+    "customDict": {
+        "some": 123,
+        "complex": 345,
+        "structure": 546
+    },
     # city is not provided here (but present in prototype)
     "pets": [
         {"id": 101, "type": "dog", "name": "Barky"},
@@ -121,13 +126,15 @@ prototype_from_swagger = {
     "id": 0,
     "name:": "",
     "country": "",
+    "customDict": {},
     "city": "",
     "pets": [
         {"id": 0, "type": "", "name": ""},
     ]
 }
 
-result = normalize_with_prototype(prototype_from_swagger, object_from_api)
+result = normalize_with_prototype(prototype_from_swagger, object_from_api, pass_through_paths=[".customDict"])
+# pass_through_paths is optional and it marks an object as something that should not be normalized
 ```
 
 would return
@@ -137,6 +144,11 @@ result = {
     "id": 123,
     "name:": "John",
     "country": "Poland",
+    "customDict": {
+        "some": 123,
+        "complex": 345,
+        "structure": 546
+    },
     "city": None,   # city was added
     "pets": [
         {"id": 101, "type": "dog", "name": "Barky"},
