@@ -22,6 +22,19 @@ def test_PaginatedApiIterator(mock_service):
     TestCase().assertListEqual(exptected_pages, pages)
 
 
+def test_PaginatedApiIterator_with_post(mock_service):
+    pages = []
+    for page in PaginatedApiIterator(requests.Session(), http_method="POST", url=f"http://localhost:5000/page-api-post",
+                                     request_page_number_param_name="pageNumber",
+                                     response_page_count_field_name="pageCount",
+                                     response_records_field_name="entities"):
+        pages.append(page)
+
+    exptected_pages = generate_pages()
+
+    TestCase().assertListEqual(exptected_pages, pages)
+
+
 def test_BufferingIterator(mock_service):
     pages = []
     for page in BufferingIterator(PaginatedApiIterator(requests.Session(), url=f"http://localhost:5000/page-api",

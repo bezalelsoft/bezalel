@@ -35,6 +35,19 @@ async def root(pageNumber: int):
         }
 
 
+@app.post("/page-api-post")
+async def paginate_api_post(pageNumber: int):
+    pageIndex = pageNumber-1
+    assert pageIndex < len(pages)
+    assert pageIndex >= 0
+
+    return {
+        "pageCount": len(pages),
+        "pageNumber": pageNumber,
+        "entities": pages[pageIndex],
+        }
+
+
 def run_uvicorn_server():
     uvicorn.run(app, host="localhost", port=5000, log_level="info")
 

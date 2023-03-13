@@ -12,10 +12,12 @@ class PaginatedApiIterator:
                  response_records_field_name: str,
                  extra_params: dict = {},
                  extra_headers: dict = {},
-                 start_page_number_from_1=True
+                 start_page_number_from_1=True,
+                 http_method="GET"
                  ):
         self.logger = logging.getLogger(__name__)
         self._session = session
+        self._http_method = http_method
         self._url = url
         self._request_page_number_param_name = request_page_number_param_name
         # self._response_page_number_field_name = response_page_number_field_name
@@ -41,7 +43,7 @@ class PaginatedApiIterator:
         if self._completed:
             raise StopIteration
 
-        response = self._session.get(self._url, headers=self._request_headers,
+        response = self._session.request(method=self._http_method, url=self._url, headers=self._request_headers,
                                      params={self._request_page_number_param_name: self.page_number, **self._extra_params})
         response.raise_for_status()
 
