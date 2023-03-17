@@ -71,6 +71,21 @@ async def paginate_api_post_2(request: ComplexRequest):
         "entities": pages[pageIndex],
         }
 
+@app.post("/page-api-post-total-records")
+async def paginate_api_post_total_records(request: ComplexRequest):
+    pageIndex = request.paging.pageNumber - 1
+    assert pageIndex < len(pages)
+    assert pageIndex >= 0
+
+    totalRecords = sum([len(p) for p in pages])
+
+    return {
+        "paging": {
+            "totalRecords": totalRecords
+        },
+        "entities": pages[pageIndex],
+        }
+
 
 def run_uvicorn_server():
     uvicorn.run(app, host="localhost", port=5000, log_level="info")
