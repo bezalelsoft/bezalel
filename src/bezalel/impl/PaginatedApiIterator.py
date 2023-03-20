@@ -95,8 +95,9 @@ class PaginatedApiIterator:
             records_count = dict_get(response_json, self._response_record_count_field_name)
             page_count = math.ceil(records_count/self._records_per_page)
 
-        self.logger.debug(
-            f"Downloaded page {self.page_number} out of {page_count}. Items collected: {len(response_json[self._response_records_field_name])}")
+        records = dict_get(response_json, self._response_records_field_name, [])
+
+        self.logger.debug(f"Downloaded page {self.page_number} out of {page_count}. Items collected: {len(records)}")
 
         self.page_number += 1
 
@@ -104,4 +105,4 @@ class PaginatedApiIterator:
                 (not self._start_page_number_from_1 and self.page_number >= page_count):
             self._completed = True
 
-        return response_json[self._response_records_field_name]
+        return records

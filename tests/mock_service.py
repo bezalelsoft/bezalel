@@ -36,6 +36,23 @@ async def root(pageNumber: int):
         }
 
 
+@app.get("/page-api-no-results")
+async def page_api_no_results(pageNumber: int):
+    return {
+        "pageCount": 0,
+        "pageNumber": pageNumber,
+        }
+
+
+@app.get("/page-api-empty-results")
+async def page_api_empty_results(pageNumber: int):
+    return {
+        "pageCount": 0,
+        "pageNumber": pageNumber,
+        "entities": [],
+        }
+
+
 @app.post("/page-api-post")
 async def paginate_api_post(pageNumber: int):
     pageIndex = pageNumber-1
