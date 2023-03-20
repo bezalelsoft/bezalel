@@ -34,6 +34,13 @@ def test_simple_case_1():
     TestCase().assertListEqual(expected_list, result)
 
 
+def test_empty_input():
+    data = []
+    expected_list = []
+    result = normalize_dicts(data, ["pets", "toys"])
+    TestCase().assertListEqual(expected_list, result)
+
+
 def test_with_empty_list():
     data = [{
         "id": 1, "name": "Cole Volk", "fitness": [{"height": 130, "weight": 60}, {"height": 1300, "weight": 600}],

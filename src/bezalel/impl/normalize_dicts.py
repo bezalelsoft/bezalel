@@ -83,4 +83,6 @@ def normalize_dicts(records_list: list, path: list, separator=".", return_incomp
             else:
                 records_denormalized.append(obj_to_repeat)
         return records_denormalized
+    if len(records_list) == 0:
+        return []
     return normalize_dicts_rec(records_list, path)
