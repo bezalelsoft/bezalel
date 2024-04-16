@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # see this page: https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 name = "bezalel"
-version = "0.0.15"
+version = "0.0.16"
 requires-python = ">=3.6"
 description = "A library for ingesting data provided by paginated HTTP APIs"
 readme = "README.md"
@@ -18,22 +18,19 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "requests"
+    "requests",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "fastapi",
+    "uvicorn"
 ]
 
 [project.urls]
 Source = "https://github.com/bezalelsoft/bezalel"
 Bug-Tracker = "https://github.com/bezalelsoft/bezalel/issues"
-
-#[options]
-#package_dir =
-#    = src
-#packages = find:
-#tests_require =
-#    fastapi
-#    uvicorn
-#[options.packages.find]
-#where = "src"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
