@@ -82,7 +82,6 @@ class CursorApiIterator:
 
             if self._request_cursor_field_name and self._next_cursor:
                 data[self._request_cursor_field_name] = self._next_cursor
-            data = data.dict()
         else:
             data = None
 
