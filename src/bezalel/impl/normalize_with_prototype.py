@@ -74,24 +74,24 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types or not isinstance(object_to_norm, (str, float)):
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if isinstance(object_to_norm, str) and object_to_norm.strip() == "" or not object_to_norm:
                             return None
                         object_to_norm = int(object_to_norm)
                 return object_to_norm
             elif isinstance(prototype, float):
                 if object_to_norm is None:
                     return None
-                if not isinstance(prototype, (int, float)):
+                if not isinstance(object_to_norm, (int, float)):
                     if strict_types or not isinstance(object_to_norm, str):
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if isinstance(object_to_norm, str) and object_to_norm.strip() == "" or not object_to_norm:
                             return None
                         try:
                             object_to_norm = float(object_to_norm)
                         except Exception as e:
                             raise NormalizeException(path_info, f"can't parse float {object_to_norm}: {e}")
-                if type(object_to_norm) != float:
+                if not isinstance(object_to_norm, float):
                     try:
                         object_to_norm = float(object_to_norm)
                     except Exception as e:
