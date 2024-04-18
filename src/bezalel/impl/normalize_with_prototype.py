@@ -21,20 +21,25 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
         If False, function will attempt to parse string, i.e. "123.45" to 123.45 float.
         It will fail on parsing errors anyway.
     :param type_converter: a function with signature:
-        type_converter(prototype_object: any, object_to_norm: any) -> str
+        type_converter(prototype_object: any, object_to_norm: any, path_info: str) -> any
         called only when strict_types=False and type(prototype_object) != type(object_to_norm)
     :return:
     """
+    if not type_converter:
+        type_converter = lambda prototype_object, object_to_norm, path_info: object_to_norm
+
     def normalize_with_prototype_rec(prototype, object_to_norm, path_info, prototype_path):
         try:
             if prototype_path in pass_through_paths:
                 return object_to_norm
             if isinstance(prototype, dict):
-                normalized_object = {}
                 if object_to_norm is None:
                     object_to_norm = {}
+                elif not isinstance(object_to_norm, dict) and not strict_types:
+                    object_to_norm = type_converter(prototype, object_to_norm, path_info)
                 if not isinstance(object_to_norm, dict):
-                    raise NormalizeException(path_info, f"object_to_norm is not dict")
+                    raise NormalizeException(path_info, f"object_to_norm is not dict (of value {object_to_norm})")
+                normalized_object = {}
                 for k, v in prototype.items():
                     if k != "":
                         normalized_object[k] = normalize_with_prototype_rec(prototype[k], object_to_norm.get(k), path_info=f"{path_info}.{k}", prototype_path=f"{prototype_path}.{k}" if prototype_path != "" else k)
@@ -46,8 +51,10 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
             elif isinstance(prototype, list):
                 if object_to_norm is None:
                     object_to_norm = []
+                elif not isinstance(object_to_norm, list) and not strict_types:
+                    object_to_norm = type_converter(prototype, object_to_norm, path_info)
                 if not isinstance(object_to_norm, list):
-                    raise NormalizeException(path_info, f"object_to_norm is not list")
+                    raise NormalizeException(path_info, f"object_to_norm is not list (of value {object_to_norm})")
                 return [normalize_with_prototype_rec(prototype[0], e, path_info=f"{path_info}[{idx}]", prototype_path=prototype_path) for idx, e in enumerate(object_to_norm)]
             elif isinstance(prototype, str):
                 if object_to_norm is None:
@@ -56,20 +63,26 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        return str(object_to_norm)
+                        return str(type_converter(prototype, object_to_norm, path_info))
                 return object_to_norm
             elif isinstance(prototype, bool):
                 if object_to_norm is None:
                     return None
                 if type(prototype) != type(object_to_norm):
-                    if strict_types or not isinstance(object_to_norm, str):
+                    if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if object_to_norm.lower().strip() in {'1', 'true', 'yes'}:
-                            return True
-                        elif object_to_norm.lower().strip() in {'0', 'false', 'no'}:
-                            return False
-                        return None
+                        object_to_norm = type_converter(prototype, object_to_norm, path_info)
+                        if not isinstance(object_to_norm, bool):
+                            if isinstance(object_to_norm, str):
+                                if object_to_norm.lower().strip() in {'1', 'true', 'yes'}:
+                                    object_to_norm = True
+                                elif object_to_norm.lower().strip() in {'0', 'false', 'no'}:
+                                    object_to_norm = False
+                                else:
+                                    object_to_norm = None
+                            else:
+                                object_to_norm = bool(object_to_norm)
                 return object_to_norm
             elif isinstance(prototype, int):
                 if object_to_norm is None:
@@ -81,12 +94,9 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                         if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
-                            if type_converter:
-                                object_to_norm = type_converter(prototype, object_to_norm)
-                            else:
-                                object_to_norm = int(object_to_norm)
+                            object_to_norm = int(type_converter(prototype, object_to_norm, path_info))
                         except Exception as e:
-                            raise NormalizeException(path_info, f"can't parse int {object_to_norm}: {e}")
+                            raise NormalizeException(path_info, f"can't parse int '{object_to_norm}': {e}")
                 return object_to_norm
             elif isinstance(prototype, float):
                 if object_to_norm is None:
@@ -98,17 +108,14 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                         if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
-                            if type_converter:
-                                object_to_norm = type_converter(prototype, object_to_norm)
-                            else:
-                                object_to_norm = float(object_to_norm)
+                            object_to_norm = float(type_converter(prototype, object_to_norm, path_info))
                         except Exception as e:
-                            raise NormalizeException(path_info, f"can't parse float {object_to_norm}: {e}")
+                            raise NormalizeException(path_info, f"can't parse float '{object_to_norm}': {e}")
                 if not isinstance(object_to_norm, float):
                     try:
                         object_to_norm = float(object_to_norm)
                     except Exception as e:
-                        raise NormalizeException(path_info, f"can't parse float {object_to_norm}: {e}")
+                        raise NormalizeException(path_info, f"can't parse float '{object_to_norm}': {e}")
                 return object_to_norm
             else:
                 raise NormalizeException(path_info, f"prototype data type not supported: {type(prototype)}")
