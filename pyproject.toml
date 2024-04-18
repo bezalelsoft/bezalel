@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # see this page: https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 name = "bezalel"
-version = "0.0.18"
+version = "0.0.19"
 requires-python = ">=3.6"
 description = "A library for ingesting data provided by paginated HTTP APIs"
 readme = "README.md"
