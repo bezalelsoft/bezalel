@@ -1,3 +1,4 @@
+import datetime
 
 
 class NormalizeException(Exception):
@@ -116,6 +117,39 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                         object_to_norm = float(object_to_norm)
                     except Exception as e:
                         raise NormalizeException(path_info, f"can't parse float '{object_to_norm}': {e}")
+                return object_to_norm
+            elif isinstance(prototype, datetime.datetime):
+                # datetime.datetime() is an instance of both datetime.datetime and datetime.date.
+                # datetime.date() is NOT an instance of datetime.datetime
+                # that's why `isinstance(prototype, datetime.datetime)` check comes before `isinstance(prototype, datetime.date)`.
+                if object_to_norm is None:
+                    return None
+                if not isinstance(object_to_norm, datetime.datetime):
+                    if strict_types:
+                        raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
+                    else:
+                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                            return None
+                        try:
+                            object_to_norm = datetime.datetime.fromisoformat(object_to_norm)
+                        except Exception as e:
+                            raise NormalizeException(path_info, f"can't parse datetime fromisoformat '{object_to_norm}': {e}")
+                return object_to_norm
+            elif isinstance(prototype, datetime.date):
+                if object_to_norm is None:
+                    return None
+                if not isinstance(object_to_norm, datetime.date):
+                    if strict_types:
+                        raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
+                    else:
+                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                            return None
+                        try:
+                            object_to_norm = datetime.date.fromisoformat(object_to_norm)
+                        except Exception as e:
+                            raise NormalizeException(path_info, f"can't parse date fromisoformat '{object_to_norm}': {e}")
+                if isinstance(object_to_norm, datetime.datetime):
+                    object_to_norm = object_to_norm.date()
                 return object_to_norm
             else:
                 raise NormalizeException(path_info, f"prototype data type not supported: {type(prototype)}")
