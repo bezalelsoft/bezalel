@@ -131,7 +131,9 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                         if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
-                            object_to_norm = datetime.datetime.fromisoformat(object_to_norm)
+                            object_to_norm = type_converter(prototype, object_to_norm, path_info)
+                            if not isinstance(object_to_norm, datetime.datetime):
+                                object_to_norm = datetime.datetime.fromisoformat(object_to_norm)
                         except Exception as e:
                             raise NormalizeException(path_info, f"can't parse datetime fromisoformat '{object_to_norm}': {e}")
                 return object_to_norm
@@ -145,7 +147,9 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                         if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
-                            object_to_norm = datetime.date.fromisoformat(object_to_norm)
+                            object_to_norm = type_converter(prototype, object_to_norm, path_info)
+                            if not isinstance(object_to_norm, datetime.date):
+                                object_to_norm = datetime.date.fromisoformat(object_to_norm)
                         except Exception as e:
                             raise NormalizeException(path_info, f"can't parse date fromisoformat '{object_to_norm}': {e}")
                 if isinstance(object_to_norm, datetime.datetime):
