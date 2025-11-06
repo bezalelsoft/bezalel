@@ -92,7 +92,7 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if object_to_norm == [] or object_to_norm == {} or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
                             object_to_norm = int(type_converter(prototype, object_to_norm, path_info))
@@ -106,7 +106,7 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if object_to_norm == [] or object_to_norm == {} or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
                             object_to_norm = float(type_converter(prototype, object_to_norm, path_info))
@@ -128,7 +128,7 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if object_to_norm == [] or object_to_norm == {} or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
                             object_to_norm = type_converter(prototype, object_to_norm, path_info)
@@ -144,7 +144,7 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
                     if strict_types:
                         raise NormalizeException(path_info, f"type(prototype) != type(object_to_norm): {type(prototype)} != {type(object_to_norm)} (of value {object_to_norm})")
                     else:
-                        if not object_to_norm or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
+                        if object_to_norm == [] or object_to_norm == {} or isinstance(object_to_norm, str) and object_to_norm.strip() == "":
                             return None
                         try:
                             object_to_norm = type_converter(prototype, object_to_norm, path_info)
@@ -160,5 +160,5 @@ def normalize_with_prototype(prototype, object_to_norm, freestyle_attrs_name="fr
         except NormalizeException as e:
             raise
         except Exception as e:
-            NormalizeException(path_info, str(e))
+            raise NormalizeException(path_info, str(e))
     return normalize_with_prototype_rec(prototype, object_to_norm, "", "")
