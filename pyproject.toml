@@ -25,7 +25,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "fastapi",
-    "uvicorn"
+    "uvicorn",
+    "pytest"
 ]
 
 [project.urls]
