@@ -16,7 +16,8 @@ class CursorApiIterator:
                  extra_data: t.Optional[dict] = None,
                  extra_headers: t.Optional[dict] = None,
                  empty_data_on_next_cursor: bool=False,
-                 payload_handler=None):
+                 payload_handler=None,
+                 timeout=(10, 60)):
         """
 
         :param session: requests.Session object (you can set session.auth = (user, passwd) for authentication)
@@ -34,6 +35,7 @@ class CursorApiIterator:
         """
         self.logger = logging.getLogger(__name__)
         self._session = session
+        self._timeout = timeout
         self._url = url
         self._method = method.upper()
         self._request_cursor_param_name = request_cursor_param_name
@@ -85,7 +87,7 @@ class CursorApiIterator:
         else:
             data = None
 
-        response = self._session.request(method=self._method, url=self._url, headers=self._request_headers, params=params, json=data)
+        response = self._session.request(method=self._method, url=self._url, headers=self._request_headers, params=params, json=data, timeout=self._timeout)
         response.raise_for_status()
 
         response_json = response.json()

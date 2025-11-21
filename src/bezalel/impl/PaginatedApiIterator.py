@@ -21,10 +21,12 @@ class PaginatedApiIterator:
                  extra_data_fields: dict = None,
                  start_page_number_from_1=True,
                  http_method="GET",
-                 request_page_number_location: str = "params"
+                 request_page_number_location: str = "params",
+                 timeout=(10, 60)
                  ):
         self.logger = logging.getLogger(__name__)
         self._session = session
+        self._timeout = timeout
         self._http_method = http_method
         self._url = url
         self._request_page_number_param_name = request_page_number_param_name
@@ -85,7 +87,7 @@ class PaginatedApiIterator:
             raise Exception(f"Wrong parameter value request_page_number_location={self._request_page_number_location}")
 
         response = self._session.request(method=self._http_method, url=self._url, headers=self._request_headers,
-                                         params=request_params, json=request_data)
+                                         params=request_params, json=request_data, timeout=self._timeout)
         response.raise_for_status()
 
         response_json = response.json()
